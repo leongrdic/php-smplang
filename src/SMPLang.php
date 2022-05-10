@@ -43,7 +43,7 @@ class SMPLang
             if (count($ternary) === 2) {
                 $values = $this->parse($ternary[1], ':');
                 if (count($values) > 2) throw new Exception('unexpected `:`');
-                $values[1] ??= '""';
+                $values[1] ??= '';
 
                 return $this->evaluate($ternary[0]) ? $this->evaluate($values[0]) : $this->evaluate($values[1]);
             }
@@ -292,12 +292,10 @@ class SMPLang
 
     protected function parse(string $input, string $delimiter, bool $omitDelimiter = true): array
     {
-        $depthRound = 0;
-        $depthBlock = 0;
-        $depthCurly = 0;
         $inQuotes = false;
-
+        $depthRound = $depthBlock = $depthCurly = 0;
         $outputIndex = 0;
+
         for($i = 0; $i < strlen($input); $i++) {
             $write = true;
             $char = $input[$i];
