@@ -1,7 +1,5 @@
 <?php
 
-use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
-
 require_once 'vendor/autoload.php';
 
 class Test {
@@ -31,7 +29,7 @@ $vars = [
 
 $smpl = new Le\SMPLang\SMPLang($vars);
 
-$el = new ExpressionLanguage();
+$el = new Symfony\Component\ExpressionLanguage\ExpressionLanguage();
 $el->register('reverse', fn() => null, fn($args, $str) => strrev($str));
 $el->register('lowercase', fn() => null, fn($args, $str) => strtolower($str));
 
