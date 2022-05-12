@@ -25,13 +25,14 @@ $vars = [
     'custom_implode' => fn(string $a, string ...$b): string => implode($a, $b),
     'reverse' => strrev(...),
     'lowercase' => strtolower(...),
+    'explode' => explode(...),
 ];
 
 $smpl = new Le\SMPLang\SMPLang($vars);
 
-$el = new Symfony\Component\ExpressionLanguage\ExpressionLanguage();
-$el->register('reverse', fn() => null, fn($args, $str) => strrev($str));
-$el->register('lowercase', fn() => null, fn($args, $str) => strtolower($str));
+$sel = new Symfony\Component\ExpressionLanguage\ExpressionLanguage();
+$sel->register('reverse', fn() => null, fn($args, $str) => strrev($str));
+$sel->register('lowercase', fn() => null, fn($args, $str) => strtolower($str));
 
 
 $tests = [
@@ -39,7 +40,7 @@ $tests = [
         '',
         null,
 
-        'el' => null // el throws an exception for empty expression
+        'sel' => null // sel throws an exception for empty expression
     ],
     'basic_concat' => [
         '"message: " ~ text',
@@ -65,7 +66,7 @@ $tests = [
         'nested.closure()("hello")',
         'you said: hello',
 
-        'el' => null // el doesn't support closures in arrays
+        'sel' => null // sel doesn't support closures in arrays
     ],
     'object_property' => [
         "object.name == 'John'",
@@ -79,13 +80,19 @@ $tests = [
         '["prepended", ...array, "appended"]',
         ['prepended', 'first', 'second', 'third', 'appended'],
 
-        'el' => null // el doesn't support unpacking
+        'sel' => null // sel doesn't support unpacking
     ],
     'parameter_unpacking' => [
         'custom_implode(" ", "zeroth", ...array, "fourth")',
         'zeroth first second third fourth',
 
-        'el' => null // el doesn't support unpacking
+        'sel' => null // sel doesn't support unpacking
+    ],
+    'function_return_value_unpacking' => [
+        'custom_implode("! ", ...explode(" ", text)) ~ "!"',
+        'this! is! some! string!',
+
+        'sel' => null // sel doesn't support unpacking
     ],
     'ternary_and_concat' => [
         '(!positive ? "" : "not ") ~ "nice"',
@@ -95,19 +102,19 @@ $tests = [
         'hash.first == hash.second ? "success"',
         null,
 
-        'el' => 'hash["first"] == hash["second"] ? "success"'
+        'sel' => 'hash["first"] == hash["second"] ? "success"'
     ],
     'short_ternary2' => [
         '(hash.third ?: "they were different") === hash.first',
         true,
 
-        'el' => '(hash["third"] ?: "they were different") === hash["first"]',
+        'sel' => '(hash["third"] ?: "they were different") === hash["first"]',
     ],
     'complex_comparisons_logic' => [
         'hash.first == "same" && (hash.second == "different" || hash.second === null) && (hash.third == "same" || hash.third == "whatever")',
         true,
 
-        'el' => 'hash["first"] == "same" && (hash["second"] == "different" || hash.second === null) && (hash["third"] == "same" || hash["third"] == "whatever")',
+        'sel' => 'hash["first"] == "same" && (hash["second"] == "different" || hash.second === null) && (hash["third"] == "same" || hash["third"] == "whatever")',
     ],
     'negating_and_exact_comparison' => [
         '[empty == !positive, empty === negative]',
@@ -117,7 +124,7 @@ $tests = [
         'reverse(array.0 ~ " don\'t " ~ number)',
         "321 t'nod tsrif",
 
-        'el' => 'reverse(array[0] ~ " don\'t " ~ number)'
+        'sel' => 'reverse(array[0] ~ " don\'t " ~ number)'
     ],
     'closure_call_in_closure_call_with_concat' => [
         'reverse(lowercase("StArT " ~ text))',
@@ -131,10 +138,10 @@ $tests = [
 
 $win = $winEl = 0;
 foreach($tests as $index => $test) {
-    $fail = $failEl = false;
+    $fail = $failSel = false;
 
-    if(!array_key_exists('el', $test)) $test['el'] = $test[0];
-    if(!array_key_exists('el_expect', $test)) $test['el_expect'] = $test[1];
+    if(!array_key_exists('sel', $test)) $test['sel'] = $test[0];
+    if(!array_key_exists('sel_expect', $test)) $test['sel_expect'] = $test[1];
 
     echo "TEST $index:\n";
 
@@ -143,16 +150,16 @@ foreach($tests as $index => $test) {
         $result = $smpl->evaluate($test[0]);
         $end = hrtime(true);
 
-        if($test['el'] !== null) {
-            $startEl = hrtime(true);
-            $resultEl = $el->evaluate($test['el'], $vars);
-            $endEl = hrtime(true);
+        if($test['sel'] !== null) {
+            $startSel = hrtime(true);
+            $resultSel = $sel->evaluate($test['sel'], $vars);
+            $endSel = hrtime(true);
         }else{
-            $failEl = true;
+            $failSel = true;
         }
     }
     catch (Le\SMPLang\Exception $e) { $fail = $e->getMessage(); }
-    catch (Exception $e) { $failEl = $e->getMessage(); }
+    catch (Exception $e) { $failSel = $e->getMessage(); }
 
     echo "  SMPL: ";
     if ($fail || $result !== $test[1]) {
@@ -167,22 +174,22 @@ foreach($tests as $index => $test) {
     }
 
     echo "  EL: ";
-    if($test['el'] === null) {
+    if($test['sel'] === null) {
         echo "\033[34mSKIPPED\033[0m\n";
-    } else if($failEl || $resultEl !== $test['el_expect']) {
+    } else if($failSel || $resultSel !== $test['sel_expect']) {
         echo "\033[31mFAILED\033[0m\n";
-        echo "    input: {$test['el']}\n";
-        echo "    expected: " . var_export($test['el_expect'], true) . "\n";
-        if(!$failEl) echo "    got: " . var_export($resultEl, true) . "\n";
-        else echo "    error: $failEl\n";
+        echo "    input: {$test['sel']}\n";
+        echo "    expected: " . var_export($test['sel_expect'], true) . "\n";
+        if(!$failSel) echo "    got: " . var_export($resultSel, true) . "\n";
+        else echo "    error: $failSel\n";
     } else {
-        $timeEl = ($endEl - $startEl) / 1000000;
-        echo "\033[32mOK ({$timeEl}ms)\033[0m\n";
+        $timeSel = ($endSel - $startSel) / 1000000;
+        echo "\033[32mOK ({$timeSel}ms)\033[0m\n";
     }
 
-    if(!$fail && !$failEl) {
-        if($timeEl <= $time) $winEl++; else $win++;
-        echo "  faster: " . ($timeEl <= $time ? "\033[31mEL\033[0m" : "\033[32mSMP\033[0m") . " by " . abs($time - $timeEl) . "\n";
+    if(!$fail && !$failSel) {
+        if($timeSel <= $time) $winEl++; else $win++;
+        echo "  faster: " . ($timeSel <= $time ? "\033[31mEL\033[0m" : "\033[32mSMPL\033[0m") . " by " . abs($time - $timeSel) . "ms\n";
     }
 
     echo "\n";

@@ -1,6 +1,6 @@
 # SMPLang
 
-SMPLang is a simple expression language for PHP.
+SMPLang is a simple expression language for PHP. It's currently in a pre-release state and any contributions and tests are welcome.
 
 The language is partly inspired by Symfony Expression Language but there are some major differences. For more details and a performance benchmark, see [test.php](test.php).
 
@@ -12,8 +12,8 @@ composer require leongrdic/smplang:dev-master
 To use SMPLang, create a new instance of the SMPLang class and pass in an array of variables. These variables will be available to use in your expressions.
 
 ```php
-$smpl= new Le\SMPLang\SMPLang([
-    'key' => 'value',
+$smpl = new Le\SMPLang\SMPLang([
+    'variableName' => 'value',
 ];
 ```
 
