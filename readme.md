@@ -18,10 +18,18 @@ $smpl = new Le\SMPLang\SMPLang([
 ```
 
 You can then call the `evaluate()` method on your SMPLang instance, passing in an expression string. This will return the result of the expression.
-
 ```php
-$smpl->evaluate($expression);
+$result = $smpl->evaluate($expression);
 ```
+
+Optionally, you can pass in a `$vars` array to provide additional variables (alongside the variables passed when initializing the object) to use in your expression:
+```php
+$result = $smpl->evaluate($expression, [
+    'localVariable' => 123,
+]);
+```
+Variables passed in this way will override variables passed in the constructor and will only be available in this specific expression in case multiple expressions are evaluated from the same object.
+
 
 In case of an exception, `Le\SMPLang\Exception` will be thrown with short description of the error.
 

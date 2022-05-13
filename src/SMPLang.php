@@ -11,8 +11,16 @@ class SMPLang
     {
     }
 
-    public function evaluate(string $input): mixed
+    public function evaluate(string $input, array $vars = []): mixed
     {
+        if(!empty($vars)){
+            $instance = clone $this;
+            $instance->vars = [...$instance->vars, ...$vars];
+            $result = $instance->evaluate($input);
+            unset($instance);
+            return $result;
+        }
+
         $input = trim($input);
 
         if($input === '') return null;
@@ -133,6 +141,16 @@ class SMPLang
             }
         }
 
+        // string concatenation expression
+        if(str_contains($input, '~')) {
+            $concat = $this->parse($input, '~');
+            if (count($concat) > 1) {
+                $result = '';
+                foreach ($concat as $item) $result .= $this->evaluate($item);
+                return $result;
+            }
+        }
+
         // arithmetic expressions
         if(str_contains($input, '+')) {
             $add = $this->parse($input, '+');
@@ -179,16 +197,6 @@ class SMPLang
             if (count($mod) > 1) {
                 $result = $this->evaluate(array_shift($mod));
                 foreach ($mod as $item) $result %= $this->evaluate($item);
-                return $result;
-            }
-        }
-
-        // string concatenation expression
-        if(str_contains($input, '~')) {
-            $concat = $this->parse($input, '~');
-            if (count($concat) > 1) {
-                $result = '';
-                foreach ($concat as $item) $result .= $this->evaluate($item);
                 return $result;
             }
         }
