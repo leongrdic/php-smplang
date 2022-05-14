@@ -265,7 +265,7 @@ class SMPLang
         if(str_contains($input, '.')) {
             $parts = $this->parse($input, '.');
             $after = array_pop($parts);
-            $before = implode('', $parts);
+            $before = implode('.', $parts);
 
             $var = $this->evaluate($before);
             return match(true){

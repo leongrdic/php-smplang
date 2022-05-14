@@ -18,7 +18,7 @@ $vars = [
     'positive' => true,
     'negative' => false,
     'array' => ['first', 'second', 'third'],
-    'hash' => ['first' => 'same', 'second' => 'different', 'third' => 'same'],
+    'hash' => ['first' => 'same', 'second' => 'different', 'third' => 'same', 'another' => ['deep' => 'text']],
     'nested' => ['closure' => fn() => fn(string $a): string => "you said: $a"],
     'object' => $testObject,
     'empty' => '',
@@ -57,6 +57,12 @@ $tests = [
         null,
 
         'sel' => null // sel throws an exception for empty expression
+    ],
+    'deep_in_hash' => [
+        'hash.another.deep',
+        'text',
+
+        'sel' => 'hash["another"]["deep"]'
     ],
     'basic_concat' => [
         '"message: " ~ text',
@@ -152,7 +158,9 @@ $tests = [
     ],
     'concat_and_arithmetic' => [
         '1 + 2 ~ 5 + 3',
-        '38'
+        '38',
+
+        'sel' => '(1 + 2) ~ (5 + 3)' // different operator precedence
     ],
     'unclosed_bracket' => [
         '(3 * 10',
