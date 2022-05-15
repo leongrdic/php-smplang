@@ -6,9 +6,27 @@
   "require": {
     "php": ">=8.1"
   },
+  "require-dev": {
+    "pestphp/pest": "^1.21"
+  },
   "autoload": {
     "psr-4": {
       "Le\\SMPLang\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Le\\SMPLang\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "./vendor/bin/pest --no-coverage",
+    "test-coverage": "./vendor/bin/phpunit --coverage-html coverage"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
     }
   }
 }
