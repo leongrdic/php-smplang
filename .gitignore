@@ -1,1 +1,7 @@
-vendor
+/.idea
+/.vscode
+/build
+/vendor
+composer.lock
+.phpunit.result.cache
+.php-cs-fixer.cache
