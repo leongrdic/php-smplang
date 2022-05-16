@@ -28,16 +28,17 @@ $result = $smpl->evaluate($expression, [
     'localVariable' => 123,
 ]);
 ```
-Variables passed in this way will override variables passed in the constructor and will only be available in this specific expression in case multiple expressions are evaluated from the same object.
+
+Variables passed this way will override variables passed in the constructor and will only be available in this specific expression in case multiple expressions are evaluated from the same object.
 
 
-In case of an exception, `Le\SMPLang\Exception` will be thrown with short description of the error.
+In case of an exception, `Le\SMPLang\Exception` will be thrown with a short description of the error.
 
 ## Syntax
 
 Variables are accessed only by their name. If a variable is not defined, an exception will be thrown.
 
-Array elements are accessed with the following syntax: `array.key.0` (even numeric keys).
+Array elements are accessed with one of the following syntax-es: `array.key.0` or `array['key'][0]` (which allows for dynamic array access).
 
 Object properties and methods are accessed with the following syntax: `object.property` or `object.method(parameters)`.
 
@@ -60,8 +61,8 @@ Array unpacking (`...array`) is supported in array definitions and closure calls
 - `-`: subtraction
 - `*`: multiplication
 - `/`: division
-- `%`: modulo
-- `**`: exponentiation
+- `%`: modulo (`a*b%c*d == (a*b)%(c*d)`)
+- `**`: exponentiation (`a*b**c*d == (a*b)**(c*d)`)
 
 ### Comparison operators
 - `===`: strict equality
@@ -88,7 +89,6 @@ Array unpacking (`...array`) is supported in array definitions and closure calls
 
 
 ## Examples
-
 ```php
 $smpl = new Le\SMPLang\SMPLang();
 $result = $smpl->evaluate('(1 + 2 * 3) / 7');

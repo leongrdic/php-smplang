@@ -5,22 +5,32 @@ namespace Le\SMPLang;
 class SMPLang
 {
 
+    const singleToDoubleQuotes = [
+        '"' => '\\"', // escape all double quotes
+        "\\'" => "[%{SINGLE_QUOTE}%]", // to be unescaped
+        "'" => '"', // for surrounding
+        "[%{SINGLE_QUOTE}%]" => "'", // restore single quotes
+    ];
+
     public function __construct(
         protected array $vars = []
     )
     {
     }
 
-    public function evaluate(string $input, array $vars = []): mixed
+    public function evaluate(string $expression, array $vars = []): mixed
     {
-        if(!empty($vars)){
-            $instance = clone $this;
-            $instance->vars = [...$instance->vars, ...$vars];
-            $result = $instance->evaluate($input);
-            unset($instance);
-            return $result;
-        }
+        if(empty($vars)) return $this->eval($expression);
 
+        $instance = clone $this;
+        $instance->vars = [...$instance->vars, ...$vars];
+        $result = $instance->eval($expression);
+        unset($instance);
+        return $result;
+    }
+
+    protected function eval(string $input): mixed
+    {
         $input = trim($input);
 
         if($input === '') return null;
@@ -39,7 +49,7 @@ class SMPLang
             $ternary = $this->parse($input, '?:');
             if (count($ternary) > 1)
                 foreach ($ternary as $index => $part) {
-                    $part = $this->evaluate($part);
+                    $part = $this->eval($part);
                     if ($part || $index === count($ternary) - 1) return $part;
                 }
         }
@@ -51,9 +61,7 @@ class SMPLang
             if (count($ternary) === 2) {
                 $values = $this->parse($ternary[1], ':');
                 if (count($values) > 2) throw new Exception('unexpected `:`');
-                $values[1] ??= '';
-
-                return $this->evaluate($ternary[0]) ? $this->evaluate($values[0]) : $this->evaluate($values[1]);
+                return $this->eval($ternary[0]) ? $this->eval($values[0]) : $this->eval($values[1] ?? '');
             }
         }
 
@@ -61,7 +69,7 @@ class SMPLang
         if(str_contains($input, '||')) {
             $or = $this->parse($input, '||');
             if (count($or) > 1) {
-                foreach ($or as $item) if ($this->evaluate($item)) return true;
+                foreach ($or as $item) if ($this->eval($item)) return true;
                 return false;
             }
         }
@@ -70,157 +78,142 @@ class SMPLang
         if(str_contains($input, '&&')) {
             $and = $this->parse($input, '&&');
             if (count($and) > 1) {
-                foreach ($and as $item) if (!$this->evaluate($item)) return false;
+                foreach ($and as $item) if (!$this->eval($item)) return false;
                 return true;
             }
         }
 
-        // comparison expressions
+        // comparison operators
         if(str_contains($input, '===')) {
             $cmp = $this->parse($input, '===');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) !== $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) !== $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '!==')) {
             $cmp = $this->parse($input, '!==');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) === $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) === $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '==')) {
             $cmp = $this->parse($input, '==');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) != $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) != $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '!=')) {
             $cmp = $this->parse($input, '!=');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) == $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) == $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '>=')) {
             $cmp = $this->parse($input, '>=');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) > $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) > $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '<=')) {
             $cmp = $this->parse($input, '<=');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) < $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) < $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '>')) {
             $cmp = $this->parse($input, '>');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) >= $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) >= $first) return false;
                 return true;
             }
         }
         if(str_contains($input, '<')) {
             $cmp = $this->parse($input, '<');
             if (count($cmp) > 1) {
-                $first = $this->evaluate(array_shift($cmp));
-                foreach ($cmp as $item) if ($this->evaluate($item) <= $first) return false;
+                $first = $this->eval(array_shift($cmp));
+                foreach ($cmp as $item) if ($this->eval($item) <= $first) return false;
                 return true;
             }
         }
 
-        // string concatenation expression
+        // string concatenation
         if(str_contains($input, '~')) {
             $concat = $this->parse($input, '~');
-            if (count($concat) > 1) {
-                $result = '';
-                foreach ($concat as $item) $result .= $this->evaluate($item);
-                return $result;
-            }
+            if (count($concat) > 1)
+                return array_reduce($concat, fn($carry, $item) => $carry . $this->eval($item), '');
         }
 
-        // arithmetic expressions
+        // arithmetic operators
         if(str_contains($input, '+')) {
             $add = $this->parse($input, '+');
-            if (count($add) > 1) {
-                $result = 0;
-                foreach ($add as $item) $result += $this->evaluate($item);
-                return $result;
-            }
+            if (count($add) > 1)
+                return array_reduce($add, fn($carry, $item) => $carry + $this->eval($item), 0);
         }
         if(str_contains($input, '-')) {
             $sub = $this->parse($input, '-');
             if (count($sub) > 1) {
-                $result = $this->evaluate(array_shift($sub));
-                foreach ($sub as $item) $result -= $this->evaluate($item);
-                return $result;
+                $first = $this->eval(array_shift($sub));
+                return array_reduce($sub, fn($carry, $item) => $carry - $this->eval($item), $first);
+            }
+        }
+        if(str_contains($input, '%')) {
+            // IMPORTANT: in SMPLang modulo is parsed like this: a*b%c*d == (a*b)%(c*d)
+            $mod = $this->parse($input, '%');
+            if (count($mod) > 1) {
+                $last = $this->eval(array_pop($mod));
+                return $this->eval(implode('%', $mod)) % $last;
             }
         }
         if(str_contains($input, '**')) {
+            // IMPORTANT: in SMPLang pow is parsed like this: a*b**c*d == (a*b)**(c*d)
             $pow = $this->parse($input, '**');
-            if (count($pow) > 1) {
-                $result = $this->evaluate(array_shift($pow));
-                foreach ($pow as $item) $result **= $this->evaluate($item);
-                return $result;
-            }
+            if (count($pow) > 1)
+                return $this->eval(array_shift($pow)) ** $this->eval(implode('**', $pow));
         }
         if(str_contains($input, '*')) {
             $mul = $this->parse($input, '*');
-            if (count($mul) > 1) {
-                $result = 1;
-                foreach ($mul as $item) $result *= $this->evaluate($item);
-                return $result;
-            }
+            if (count($mul) > 1)
+                return array_reduce($mul, fn($carry, $item) => $carry * $this->eval($item), 1);
         }
         if(str_contains($input, '/')) {
             $div = $this->parse($input, '/');
             if (count($div) > 1) {
-                $result = $this->evaluate(array_shift($div));
-                foreach ($div as $item) $result /= $this->evaluate($item);
-                return $result;
-            }
-        }
-        if(str_contains($input, '%')) {
-            $mod = $this->parse($input, '%');
-            if (count($mod) > 1) {
-                $result = $this->evaluate(array_shift($mod));
-                foreach ($mod as $item) $result %= $this->evaluate($item);
-                return $result;
+                $first = $this->eval(array_shift($div));
+                return array_reduce($div, fn($carry, $item) => $carry / $this->eval($item), $first);
             }
         }
 
-        // check if a string
+        // single quote string
         if(str_starts_with($input, "'")) {
             if(!str_ends_with($input, "'")) throw new Exception('unexpected end of string');
 
-            // convert to a string that can be json decoded
-            $input = str_replace('"', '\\"', $input); // escape all double quotes
-            $input = str_replace("\\'", "[%{SINGLE_QUOTE}%]", $input); // to be unescaped
-            $input = str_replace("'", '"', $input); // for surrounding
-            $input = str_replace("[%{SINGLE_QUOTE}%]", "'", $input); // restore single quotes
+            $rules = static::singleToDoubleQuotes;
+            $input = str_replace(array_keys($rules), array_values($rules), $input);
         }
 
+        // double quote string
         if(str_starts_with($input, '"')){
             $output = json_decode($input);
             if(json_last_error() !== 0) throw new Exception('unexpected end of string');
             return $output;
         }
 
-        // check if expression negated
+        // expression is negated
         if(str_starts_with($input, '!'))
-            return !$this->evaluate(substr($input, 1));
+            return !$this->eval(substr($input, 1));
 
         // if the expression is just wrapped in brackets, remove them
         if(str_starts_with($input, '(')){
@@ -228,10 +221,10 @@ class SMPLang
             if(!str_ends_with($input, ')'))
                 throw new Exception("expected closing round bracket");
 
-            return $this->evaluate(substr($input, 1, -1));
+            return $this->eval(substr($input, 1, -1));
         }
 
-        // check if the expression is an array
+        // array definition
         if(str_starts_with($input, '[')) {
             // check if the input ends with a trailing block bracket and get rid of both brackets
             if(!str_ends_with($input, ']'))
@@ -241,42 +234,40 @@ class SMPLang
             return $this->evaluateList($input);
         }
 
-        // check if the expression is a callable call
-        // bracket will only be in expression if it is a callable call, all other cases are handled above
-        if(str_contains($input, '(')) {
+        // callable call
+        // if the expression ends with a round bracket (and it doesn't start with one)
+        if(str_ends_with($input, ')')) {
             // parse the input delimiting by opening bracket
-            $parts = $this->parse($input, '(', false);
-
             // parameter string is in last part, without trailing and leading brackets
+            $parts = $this->parse($input, '(', false);
             $params = substr(array_pop($parts), 1, -1);
             $before = implode('', $parts);
 
-            // evaluate callable
-            $callable = $this->evaluate($before);
+            $callable = $this->eval($before);
             if(!is_callable($callable)) throw new Exception("`$before` is not callable");
-
-            // evaluate each parameter
             $params = $this->evaluateList($params);
 
             return $callable(...$params);
         }
 
-        // check if the expression is a nested variable
+        // nested variable [] access
+        // if the expression ends with a block bracket (and it doesn't start with one)
+        if(str_ends_with($input, ']')) {
+            $parts = $this->parse($input, '[', false);
+            $prop = substr(array_pop($parts), 1, -1);
+            $before = implode('', $parts);
+            return $this->getProperty($before, $this->eval($prop));
+        }
+
+        // nested variable . access
         if(str_contains($input, '.')) {
             $parts = $this->parse($input, '.');
             $after = array_pop($parts);
             $before = implode('.', $parts);
-
-            $var = $this->evaluate($before);
-            return match(true){
-                is_object($var) && method_exists($var, $after) => $var->$after(...),
-                is_object($var) => $var->$after,
-                is_array($var) && array_key_exists($after, $var) => $var[$after],
-                default => throw new Exception("element `$after` not found in `$before`"),
-            };
+            return $this->getProperty($before, $after);
         }
 
-        // finally, if expression isn't anything of above, it must be a variable
+        // finally, if expression doesn't match any conditions above, assume it's a variable
         if(!array_key_exists($input, $this->vars)) throw new Exception("variable `$input` not defined");
         return $this->vars[$input];
     }
@@ -286,16 +277,26 @@ class SMPLang
         $params = $this->parse($params, ',');
         foreach($params as $param) {
             if(!str_starts_with($param, '...')) {
-                $output[] = $this->evaluate($param);
+                $output[] = $this->eval($param);
                 continue;
             }
 
-            $packed = $this->evaluate(substr($param, 3));
+            $packed = $this->eval(substr($param, 3));
             if(!is_array($packed)) throw new Exception("can't unpack `$param` - not an array");
             foreach($packed as $item) $output[] = $item;
         }
 
         return $output ?? [];
+    }
+
+    protected function getProperty(string $expression, string $prop): mixed
+    {
+        $var = $this->eval($expression);
+        return match (true) {
+            is_array($var) && array_key_exists($prop, $var) => $var[$prop],
+            is_object($var) => method_exists($var, $prop) ? $var->$prop(...) : $var->$prop,
+            default => throw new Exception("element `$prop` not found in `$expression`"),
+        };
     }
 
     protected function parse(string $input, string $delimiter, bool $omitDelimiter = true): array

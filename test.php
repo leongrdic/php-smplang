@@ -26,6 +26,10 @@ $vars = [
     'reverse' => strrev(...),
     'lowercase' => strtolower(...),
     'explode' => explode(...),
+    'foo' => fn($a) => ['bar' => $a],
+    'bob' => ['foo' => fn($a) => ['bar' => $a]],
+    'fooText' => 'foo',
+    'barText' => 'bar',
 ];
 
 $smpl = new Le\SMPLang\SMPLang($vars);
@@ -34,6 +38,7 @@ if(class_exists(Symfony\Component\ExpressionLanguage\ExpressionLanguage::class))
     $sel = new Symfony\Component\ExpressionLanguage\ExpressionLanguage();
     $sel->register('reverse', fn() => null, fn($args, $str) => strrev($str));
     $sel->register('lowercase', fn() => null, fn($args, $str) => strtolower($str));
+    $sel->register('foo', fn() => null, fn($args, $str) => ['bar' => $str]);
 }
 
 
@@ -169,6 +174,20 @@ $tests = [
     'nonexistent_variable' => [
         'nonexistent',
         'fail' => true
+    ],
+    'nested_closure_call' => [
+        'foo("hello")["ba" ~ "r"]',
+        'hello'
+    ],
+    'nested_closure_call_2' => [
+        'bob[fooText]("hello")[barText]',
+        'hello',
+
+        'sel' => null // sel doesn't support closures in arrays
+    ],
+    'array_access_brackets' => [
+        'array[0]',
+        'first'
     ],
 ];
 
