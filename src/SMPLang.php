@@ -71,14 +71,10 @@ class SMPLang
         // ternary expression
         if (str_contains($input, '?')) {
             $ternary = $this->parse($input, '?');
-            if (count($ternary) > 2) {
-                throw new Exception('unexpected `?`');
-            }
+            (count($ternary) > 2) and throw new Exception('unexpected `?`');
             if (count($ternary) === 2) {
                 $values = $this->parse($ternary[1], ':');
-                if (count($values) > 2) {
-                    throw new Exception('unexpected `:`');
-                }
+                (count($values) > 2) and throw new Exception('unexpected `:`');
 
                 return $this->eval($ternary[0]) ? $this->eval($values[0]) : $this->eval($values[1] ?? '');
             }
@@ -285,9 +281,7 @@ class SMPLang
         // double quote string
         if (str_starts_with($input, '"')) {
             $output = json_decode($input);
-            if (json_last_error() !== 0) {
-                throw new Exception('unexpected end of string');
-            }
+            (json_last_error() !== 0) and throw new Exception('unexpected end of string');
 
             return $output;
         }
@@ -310,9 +304,7 @@ class SMPLang
         // array definition
         if (str_starts_with($input, '[')) {
             // check if the input ends with a trailing block bracket and get rid of both brackets
-            if (! str_ends_with($input, ']')) {
-                throw new Exception("expected closing block bracket");
-            }
+            (! str_ends_with($input, ']')) and throw new Exception("expected closing block bracket");
 
             $input = substr($input, 1, -1);
 
@@ -467,18 +459,10 @@ class SMPLang
             }
         }
 
-        if ($inQuotes) {
-            throw new Exception("expected closing `$inQuotes`");
-        }
-        if ($depthRound > 0) {
-            throw new Exception("round bracket not closed");
-        }
-        if ($depthBlock > 0) {
-            throw new Exception("square bracket not closed");
-        }
-        if ($depthCurly > 0) {
-            throw new Exception("curly bracket not closed");
-        }
+        $inQuotes and throw new Exception("expected closing `$inQuotes`");
+        ($depthRound > 0) and throw new Exception("round bracket not closed");
+        ($depthBlock > 0) and throw new Exception("block bracket not closed");
+        ($depthCurly > 0) and throw new Exception("curly bracket not closed");
 
         return $output ?? [];
     }

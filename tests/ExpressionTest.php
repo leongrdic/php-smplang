@@ -8,7 +8,8 @@ use function PHPUnit\Framework\assertFalse;
 use function PHPUnit\Framework\assertNull;
 use function PHPUnit\Framework\assertTrue;
 
-it('empty expression', function () {
+
+test('empty expression', function () {
     $smpl = new SMPLang();
     assertNull($smpl->evaluate(''));
     assertNull($smpl->evaluate('null'));
@@ -16,7 +17,7 @@ it('empty expression', function () {
     assertNull($smpl->evaluate('NulL'));
 });
 
-it('deep in hash', function () {
+test('deep in hash', function () {
     $smpl = new SMPLang([
         'hash' => ['first' => 'same', 'second' => 'different', 'third' => 'same', 'another' => ['deep' => 'text']],
     ]);
@@ -24,7 +25,7 @@ it('deep in hash', function () {
     assertEquals($smpl->evaluate('hash.another.deep'), 'text');
 });
 
-it('basic concat', function () {
+test('basic concat', function () {
     $smpl = new SMPLang([
         'text' => 'this is some string',
     ]);
@@ -32,7 +33,7 @@ it('basic concat', function () {
     assertEquals($smpl->evaluate('"message: " ~ text'), 'message: this is some string');
 });
 
-it('basic arithmetics', function () {
+test('basic arithmetics', function () {
     $smpl = new SMPLang([
         'number' => 123,
     ]);
@@ -46,7 +47,7 @@ it('basic arithmetics', function () {
     assertEquals($smpl->evaluate('(number - 10.0 * 04.0 / 2.0 - 3.0) % 10.0'), 0);
 });
 
-it('arithmetics comparisons', function () {
+test('arithmetics comparisons', function () {
     $smpl = new SMPLang([
         'number' => 123,
         'negative' => false,
@@ -55,21 +56,21 @@ it('arithmetics comparisons', function () {
     assertTrue($smpl->evaluate('(100 + number * 1 <= 200 || number < -1) === negative'));
 });
 
-it('boolean expressions', function () {
+test('boolean expressions', function () {
     $smpl = new SMPLang();
     assertTrue($smpl->evaluate('true && false && false || true && true'));
     assertFalse($smpl->evaluate('true && false && (false || true) && true'));
 });
 
-it('closure from nested closure', function () {
+test('closure from nested closure', function () {
     $smpl = new SMPLang([
-        'nested' => ['closure' => fn() => fn(string $a): string => "you said: $a"],
+        'nested' => ['closure' => fn () => fn (string $a): string => "you said: $a"],
     ]);
 
     assertEquals($smpl->evaluate('nested.closure()("hello")'), 'you said: hello');
 });
 
-it('object property', function () {
+test('object property', function () {
     $smpl = new SMPLang([
         'object' => new class {
             public string $name = 'John';
@@ -81,7 +82,7 @@ it('object property', function () {
     assertEquals($smpl->evaluate('object.name'), 'John');
 });
 
-it('object method', function () {
+test('object method', function () {
     $smpl = new SMPLang([
         'object' => new class {
             public function method(int $number): int
