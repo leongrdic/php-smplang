@@ -4,7 +4,7 @@ namespace Le\SMPLang;
 
 class SMPLang
 {
-    const singleToDoubleQuotes = [
+    public const singleToDoubleQuotes = [
         '"' => '\\"', // escape all double quotes
         "\\'" => "[%{SINGLE_QUOTE}%]", // to be unescaped
         "'" => '"', // for surrounding
