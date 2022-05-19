@@ -38,23 +38,25 @@ In case of an exception, `Le\SMPLang\Exception` will be thrown with a short desc
 
 Variables are accessed only by their name. If a variable is not defined, an exception will be thrown.
 
-Array elements are accessed with one of the following syntax-es: `array.key.0` or `array['key'][0]` (which allows for dynamic array access).
+Array elements are accessed with one of the following syntaxes: `array.key.0` or `array['key'][0]` (which allows for dynamic array access).
 
 Object properties and methods are accessed with the following syntax: `object.property` or `object.method(parameters)`.
 
-Closures/functions are called with the following syntax: `closure(parameter1, parameter2, ...)`
+Closures/functions are called with the following syntax: `closure(paramValue, ...)`. Named arguments are supported using the following syntax: `closure(param: value, ...)`.
 
-Arrays are defined with the following syntax: `[element1, element2, ...]`
+Array unpacking (`...array`) is supported both in array definitions and closure calls.
 
-Array unpacking (`...array`) is supported in array definitions and closure calls.
+Arrays can be defined using any of the following two syntaxes: `[element1, element2, ...]` or `{element1, element2, ...}`.
+
+Arrays can also serve as hashes by providing keys: `{key1: value1, key2: value2, ...}` or `["key1": value1, "key2": "value2", ...]`. The latter syntax can be used to define arrays with dynamic keys by passing variables as keys.
+
 
 ### Supported literals
 - `null`
 - booleans (`true` and `false`)
-- strings (`"string"` or `'string'`)
+- strings (`"string"` or `'string'` or <code>\`string\`</code>)
 - numbers (`1`, `1.2`, `-1`, `-1.2`)
-- arrays (`[23, 'string']`)
-- hashes aren't supported currently
+- arrays (`[23, 'string']` or `{foo: "bar", baz: 23}`)
 
 ### Arithmetic operators
 - `+`: addition
@@ -102,7 +104,7 @@ $smpl = new Le\SMPLang\SMPLang([
     'hash' => ['a' => 'b'],
 ]);
 
-$result = $smpl->evaluate('foo ~ " " ~ arr.1 ~ " " ~ hash.a');
+$result = $smpl->evaluate('foo ~ " " ~ arr[1] ~ " " ~ hash.a');
 // $result will be "bar 2 b"
 ```
 
