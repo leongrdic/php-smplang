@@ -394,6 +394,7 @@ class SMPLang
                 };
 
                 if ($key !== null) {
+                    is_string($key) or throw new Exception("key must be a string");
                     $output[$key] = $value;
                 } else {
                     $output[] = $value;
