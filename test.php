@@ -2,7 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-class Test {
+class Test
+{
     public string $name = 'John';
 
     public function method(int $a): int
@@ -19,26 +20,26 @@ $vars = [
     'negative' => false,
     'array' => ['first', 'second', 'third'],
     'hash' => ['first' => 'same', 'second' => 'different', 'third' => 'same', 'another' => ['deep' => 'text']],
-    'nested' => ['closure' => fn() => fn(string $a): string => "you said: $a"],
+    'nested' => ['closure' => fn () => fn (string $a): string => "you said: $a"],
     'object' => $testObject,
     'empty' => '',
-    'custom_implode' => fn(string $a, string ...$b): string => implode($a, $b),
+    'custom_implode' => fn (string $a, string ...$b): string => implode($a, $b),
     'reverse' => strrev(...),
     'lowercase' => strtolower(...),
     'explode' => explode(...),
-    'foo' => fn($a) => ['bar' => $a],
-    'bob' => ['foo' => fn($a) => ['bar' => $a]],
+    'foo' => fn ($a) => ['bar' => $a],
+    'bob' => ['foo' => fn ($a) => ['bar' => $a]],
     'fooText' => 'foo',
     'barText' => 'bar',
 ];
 
 $smpl = new Le\SMPLang\SMPLang($vars);
 
-if(class_exists(Symfony\Component\ExpressionLanguage\ExpressionLanguage::class)) {
+if (class_exists(Symfony\Component\ExpressionLanguage\ExpressionLanguage::class)) {
     $sel = new Symfony\Component\ExpressionLanguage\ExpressionLanguage();
-    $sel->register('reverse', fn() => null, fn($args, $str) => strrev($str));
-    $sel->register('lowercase', fn() => null, fn($args, $str) => strtolower($str));
-    $sel->register('foo', fn() => null, fn($args, $str) => ['bar' => $str]);
+    $sel->register('reverse', fn () => null, fn ($args, $str) => strrev($str));
+    $sel->register('lowercase', fn () => null, fn ($args, $str) => strtolower($str));
+    $sel->register('foo', fn () => null, fn ($args, $str) => ['bar' => $str]);
 }
 
 
@@ -71,6 +72,14 @@ $tests = [
     ],
     'basic_concat' => [
         '"message: " ~ text',
+        'message: this is some string'
+    ],
+    'basic_concat_single_quotes' => [
+        "'message: ' ~ text",
+        'message: this is some string'
+    ],
+    'basic_concat_backticks' => [
+        "`message: ` ~ text",
         'message: this is some string'
     ],
     'basic_arithmetics' => [
@@ -189,10 +198,14 @@ $tests = [
         'array[0]',
         'first'
     ],
+    'hash' => [
+        '{`hello`, ...array, [`element`, {foo: `bar`}, text: `ok`], array, sth: `this`, [], {}}',
+        ['hello', 'first', 'second', 'third', ['element', ['foo' => 'bar'], 'this is some string' => 'ok'], ['first', 'second', 'third'], 'sth' => 'this', [], []],
+    ],
 ];
 
 $passCount = $win = $winSel = 0;
-foreach($tests as $index => $test) {
+foreach ($tests as $index => $test) {
     $pass = $passSel = $caught = $caughtSel = false;
 
     $test[0] ??= $index;
@@ -200,7 +213,9 @@ foreach($tests as $index => $test) {
     $test['fail'] ??= false;
 
     // sel-specific syntax expression is copied from smpl expression
-    if(!array_key_exists('sel', $test)) $test['sel'] = $test[0];
+    if (!array_key_exists('sel', $test)) {
+        $test['sel'] = $test[0];
+    }
 
     echo "TEST $index:\n";
 
@@ -208,19 +223,17 @@ foreach($tests as $index => $test) {
         $start = hrtime(true);
         $result = $smpl->evaluate($test[0]);
         $end = hrtime(true);
-    }
-    catch (Le\SMPLang\Exception $e) {
+    } catch (Le\SMPLang\Exception $e) {
         $end = hrtime(true);
         $caught = $e->getMessage();
     }
 
-    if(isset($sel) && $test['sel'] !== null) {
+    if (isset($sel) && $test['sel'] !== null) {
         try {
             $startSel = hrtime(true);
             $resultSel = $sel->evaluate($test['sel'], $vars);
             $endSel = hrtime(true);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $endSel = hrtime(true);
             $caughtSel = $e->getMessage();
         }
@@ -231,11 +244,17 @@ foreach($tests as $index => $test) {
         echo "\033[31mFAILED\033[0m\n";
         echo "    input: $test[0]\n";
 
-        if($test['fail']) echo "    expected: [thrown exception]\n";
-        else echo "    expected: " . var_export($test[1], true) . "\n";
+        if ($test['fail']) {
+            echo "    expected: [thrown exception]\n";
+        } else {
+            echo "    expected: " . var_export($test[1], true) . "\n";
+        }
 
-        if(!$caught) echo "    got: " . var_export($result, true) . "\n";
-        else echo "    error: $caught\n";
+        if (!$caught) {
+            echo "    got: " . var_export($result, true) . "\n";
+        } else {
+            echo "    error: $caught\n";
+        }
     } else {
         $pass = true;
         $passCount++;
@@ -243,7 +262,7 @@ foreach($tests as $index => $test) {
         echo "\033[32mOK ({$time}ms)\033[0m\n";
     }
 
-    if(isset($sel)) {
+    if (isset($sel)) {
         echo "  SEL: ";
         if ($test['sel'] === null) {
             echo "\033[34mSKIPPED\033[0m\n";
@@ -252,10 +271,16 @@ foreach($tests as $index => $test) {
                 echo "\033[31mFAILED\033[0m\n";
                 echo "    input: {$test['sel']}\n";
 
-                if ($test['fail']) echo "    expected: [thrown exception]\n";
-                else echo "    expected: " . var_export($test[1], true) . "\n";
-                if (!$caughtSel) echo "    got: " . var_export($resultSel, true) . "\n";
-                else echo "    error: $caughtSel\n";
+                if ($test['fail']) {
+                    echo "    expected: [thrown exception]\n";
+                } else {
+                    echo "    expected: " . var_export($test[1], true) . "\n";
+                }
+                if (!$caughtSel) {
+                    echo "    got: " . var_export($resultSel, true) . "\n";
+                } else {
+                    echo "    error: $caughtSel\n";
+                }
             } else {
                 $passSel = true;
                 $timeSel = ($endSel - $startSel) / 1000000;
@@ -264,8 +289,12 @@ foreach($tests as $index => $test) {
         }
     }
 
-    if($pass && $passSel) {
-        if($timeSel <= $time) $winSel++; else $win++;
+    if ($pass && $passSel) {
+        if ($timeSel <= $time) {
+            $winSel++;
+        } else {
+            $win++;
+        }
         echo "faster: " . ($timeSel <= $time ? "\033[31mEL\033[0m" : "\033[32mSMPL\033[0m") . " by " . abs($time - $timeSel) . "ms\n";
     }
 
@@ -274,7 +303,7 @@ foreach($tests as $index => $test) {
 
 echo "All tests completed, results:\n";
 
-if(isset($sel)) {
+if (isset($sel)) {
     $totalWins = $win + $winSel;
     echo "  SMPL faster: $win / $totalWins\n";
 }

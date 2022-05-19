@@ -4,7 +4,14 @@ namespace Le\SMPLang;
 
 class SMPLang
 {
-    public const singleToDoubleQuotes = [
+    protected const backtickToDoubleQuotes = [
+        '"' => '\\"', // escape all double quotes
+        "\\`" => "[%{BACKTICK}%]", // to be unescaped
+        "`" => '"', // for surrounding
+        "[%{BACKTICK}%]" => "`", // restore backticks
+    ];
+
+    protected const singleToDoubleQuotes = [
         '"' => '\\"', // escape all double quotes
         "\\'" => "[%{SINGLE_QUOTE}%]", // to be unescaped
         "'" => '"', // for surrounding
@@ -268,11 +275,17 @@ class SMPLang
             }
         }
 
+        // backtick string
+        if (str_starts_with($input, "`")) {
+            (! str_ends_with($input, "`")) && throw new Exception('unexpected end of string');
+
+            $rules = static::backtickToDoubleQuotes;
+            $input = str_replace(array_keys($rules), array_values($rules), $input);
+        }
+
         // single quote string
         if (str_starts_with($input, "'")) {
-            if (! str_ends_with($input, "'")) {
-                throw new Exception('unexpected end of string');
-            }
+            (! str_ends_with($input, "'")) && throw new Exception('unexpected end of string');
 
             $rules = static::singleToDoubleQuotes;
             $input = str_replace(array_keys($rules), array_values($rules), $input);
@@ -305,10 +318,18 @@ class SMPLang
         if (str_starts_with($input, '[')) {
             // check if the input ends with a trailing block bracket and get rid of both brackets
             (! str_ends_with($input, ']')) and throw new Exception("expected closing block bracket");
-
             $input = substr($input, 1, -1);
 
-            return $this->evaluateList($input);
+            return $this->evaluateList($input, true);
+        }
+
+        // hash definition
+        if (str_starts_with($input, '{')) {
+            // check if the input ends with a trailing curly bracket and get rid of both brackets
+            (! str_ends_with($input, '}')) and throw new Exception("expected closing curly bracket");
+            $input = substr($input, 1, -1);
+
+            return $this->evaluateList($input); // keys are not evaluated
         }
 
         // callable call
@@ -356,20 +377,33 @@ class SMPLang
         return $this->vars[$input];
     }
 
-    protected function evaluateList(string $params): array
+    protected function evaluateList(string $params, bool $evalKeys = false): array
     {
         $params = $this->parse($params, ',');
         foreach ($params as $param) {
             if (! str_starts_with($param, '...')) {
-                $output[] = $this->eval($param);
+                $paramParts = $this->parse($param, ':');
 
+                match (count($paramParts)) {
+                    default => throw new Exception("unexpected `:`"),
+                    1 => [$key, $value] = [ null, $this->eval(array_shift($paramParts)) ],
+                    2 => [$key, $value] = [
+                        $evalKeys ? $this->eval(array_shift($paramParts)) : array_shift($paramParts),
+                        $this->eval(array_shift($paramParts))
+                    ],
+                };
+
+                if ($key !== null) {
+                    $output[$key] = $value;
+                } else {
+                    $output[] = $value;
+                }
                 continue;
             }
 
             $packed = $this->eval(substr($param, 3));
-            if (! is_array($packed)) {
-                throw new Exception("can't unpack `$param` - not an array");
-            }
+            (! is_array($packed)) and throw new Exception("can't unpack `$param` - not an array");
+
             foreach ($packed as $item) {
                 $output[] = $item;
             }
@@ -412,6 +446,13 @@ class SMPLang
                     $inQuotes = false;
                 } elseif (! $inQuotes) {
                     $inQuotes = "'";
+                }
+            }
+            if ($char === "`" && $charLeft !== '\\') {
+                if ($inQuotes === "`") {
+                    $inQuotes = false;
+                } elseif (! $inQuotes) {
+                    $inQuotes = "`";
                 }
             }
 
