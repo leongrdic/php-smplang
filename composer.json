@@ -1,5 +1,6 @@
 {
     "name": "leongrdic/smplang",
+    "description": "A simple language written in PHP that evaluates expressions without eval",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/leongrdic/php-smplang",
