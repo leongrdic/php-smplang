@@ -17,12 +17,12 @@ test('empty expression', function () {
     assertNull($smpl->evaluate('NulL'));
 });
 
-test('deep in hash', function () {
-    $smpl = new SMPLang([
-        'hash' => ['first' => 'same', 'second' => 'different', 'third' => 'same', 'another' => ['deep' => 'text']],
-    ]);
+test('string parsing', function () {
+    $smpl = new SMPLang();
 
-    assertEquals($smpl->evaluate('hash.another.deep'), 'text');
+    assertEquals($smpl->evaluate('" \' \" ` ) ( ] [ } { , "'), " ' \" ` ) ( ] [ } { , ");
+    assertEquals($smpl->evaluate("' \' \" ` ) ( ] [ } { , '"), " ' \" ` ) ( ] [ } { , ");
+    assertEquals($smpl->evaluate("` ' \" \` ) ( ] [ } { , `"), " ' \" ` ) ( ] [ } { , ");
 });
 
 test('basic concat', function () {
@@ -31,6 +31,22 @@ test('basic concat', function () {
     ]);
 
     assertEquals($smpl->evaluate('"message: " ~ text'), 'message: this is some string');
+    assertEquals($smpl->evaluate('"message: "~text'), 'message: this is some string');
+    assertEquals($smpl->evaluate("'message: ' ~ text"), 'message: this is some string');
+    assertEquals($smpl->evaluate("'message: '~text"), 'message: this is some string');
+    assertEquals($smpl->evaluate('`message: ` ~ text'), 'message: this is some string');
+    assertEquals($smpl->evaluate('`message: `~text'), 'message: this is some string');
+});
+
+test('number parsing', function () {
+    $smpl = new SMPLang();
+
+    assertEquals($smpl->evaluate('1'), 1);
+    assertEquals($smpl->evaluate('-1'), -1);
+    assertEquals($smpl->evaluate('1.0'), 1.0);
+    assertEquals($smpl->evaluate('-1.0'), -1.0);
+    assertEquals($smpl->evaluate('12.34'), 12.34);
+    assertEquals($smpl->evaluate('-12.34'), -12.34);
 });
 
 test('basic arithmetics', function () {
@@ -39,12 +55,14 @@ test('basic arithmetics', function () {
     ]);
 
     assertEquals($smpl->evaluate('(number - 10 * 4 / 2 - 3) % 10'), 0);
+    assertEquals($smpl->evaluate('(number-10*4/2-3)%10'), 0);
 
     $smpl = new SMPLang([
         'number' => '000123.0',
     ]);
 
     assertEquals($smpl->evaluate('(number - 10.0 * 04.0 / 2.0 - 3.0) % 10.0'), 0);
+    assertEquals($smpl->evaluate('(number-10.0*04.0/2.0-3.0)%10.0'), 0);
 });
 
 test('arithmetics comparisons', function () {
@@ -54,32 +72,101 @@ test('arithmetics comparisons', function () {
     ]);
 
     assertTrue($smpl->evaluate('(100 + number * 1 <= 200 || number < -1) === negative'));
+    assertTrue($smpl->evaluate('(100+number*1<=200||number<-1)===negative'));
 });
 
 test('boolean expressions', function () {
     $smpl = new SMPLang();
+
+    assertTrue($smpl->evaluate('true'));
+    assertTrue($smpl->evaluate('!false'));
+    assertFalse($smpl->evaluate('!true'));
+    assertFalse($smpl->evaluate('false'));
+
     assertTrue($smpl->evaluate('true && false && false || true && true'));
+    assertTrue($smpl->evaluate('!false && !true && false || !false && true'));
+    assertTrue($smpl->evaluate('true&&false&&false||true&&true'));
+    assertTrue($smpl->evaluate('((true)&&false&&false||true&&true)'));
+    assertFalse($smpl->evaluate('!((true)&&false&&false||true&&true)'));
+
     assertFalse($smpl->evaluate('true && false && (false || true) && true'));
+    assertFalse($smpl->evaluate('!false && !true && (false || !false) && true'));
+    assertFalse($smpl->evaluate('true&&false&&(false||true)&&true'));
+    assertFalse($smpl->evaluate('((true)&&false&&(false||true)&&true)'));
+    assertTrue($smpl->evaluate('!((true)&&false&&(false||true)&&true)'));
 });
 
-test('closure from nested closure', function () {
+test('array definitions', function () {
     $smpl = new SMPLang([
-        'nested' => ['closure' => fn () => fn (string $a): string => "you said: $a"],
+        'key' => 'third'
     ]);
 
-    assertEquals($smpl->evaluate('nested.closure()("hello")'), 'you said: hello');
+    assertEquals($smpl->evaluate('[]'), []);
+    assertEquals($smpl->evaluate('[ "one", "two", 23, ]'), ["one", "two", 23]);
+    assertEquals($smpl->evaluate('["first": "one", "second": "two", key: 23]'), ["first" => "one", "second" => "two", "third" => 23]);
+    assertEquals($smpl->evaluate('["array": ["foo", `bar`]]'), ["array" => ["foo", "bar"]]);
+    assertEquals($smpl->evaluate('["array": {\'foo\', "bar"}]'), ["array" => ["foo", "bar"]]);
+
+    assertEquals($smpl->evaluate('{}'), []);
+    assertEquals($smpl->evaluate('{ "one", "two", 23, }'), ["one", "two", 23]);
+    assertEquals($smpl->evaluate('{first: "one", second: "two", key: 23}'), ["first" => "one", "second" => "two", "key" => 23]);
+    assertEquals($smpl->evaluate('{array: ["foo", `bar`]}'), ["array" => ["foo", "bar"]]);
+    assertEquals($smpl->evaluate('{array: {\'foo\', "bar"}}'), ["array" => ["foo", "bar"]]);
+});
+
+test('access array elements', function () {
+    $smpl = new SMPLang([
+        'hash' => ['first' => 'same', 'second' => 'different', 'third' => 'same', 'another' => ['deep' => 'text']],
+        'key' => 'first'
+    ]);
+
+    assertEquals($smpl->evaluate('hash.second'), 'different');
+    assertEquals($smpl->evaluate('hash["second"]'), 'different');
+    assertEquals($smpl->evaluate('hash[key]'), 'same');
+    assertEquals($smpl->evaluate('hash.another'), ['deep' => 'text']);
+
+    assertEquals($smpl->evaluate('hash.another.deep'), 'text');
+    assertEquals($smpl->evaluate('hash["another"]["deep"]'), 'text');
+    assertEquals($smpl->evaluate("hash['another']['deep']"), 'text');
+    assertEquals($smpl->evaluate('hash[`another`][`deep`]'), 'text');
+});
+
+test('closure calls', function () {
+    $smpl = new SMPLang([
+        'param' => ['hello'],
+        'params' => ['hello', 'world'],
+        'named_params' => ['a' => 'hello', 'b' => 'world'],
+        'simple' => fn ($a, $b) => $a . '-' . $b,
+        'nested' => ['closure' => fn ($a) => fn (string $b): string => "you said: $a then $b"],
+        'returns_array' => fn ($value) => ['key' => $value],
+    ]);
+
+    assertEquals($smpl->evaluate('simple("hello", `world`)'), 'hello-world');
+    assertEquals($smpl->evaluate('simple(a: "hello", b: `world`)'), 'hello-world');
+    assertEquals($smpl->evaluate('simple(...params)'), 'hello-world');
+    assertEquals($smpl->evaluate('simple(...named_params)'), 'hello-world');
+    assertEquals($smpl->evaluate('simple(...param, \'world\')'), 'hello-world');
+
+    assertEquals($smpl->evaluate('nested.closure("hello")(`world`)'), 'you said: hello then world');
+    assertEquals($smpl->evaluate('nested[`closure`]("hello")(`world`)'), 'you said: hello then world');
+    assertEquals($smpl->evaluate('returns_array("foo").key'), 'foo');
+    assertEquals($smpl->evaluate('returns_array("foo")["key"]'), 'foo');
 });
 
 test('object property', function () {
     $smpl = new SMPLang([
         'object' => new class {
             public string $name = 'John';
-        }
+        },
+        'prop' => 'name',
     ]);
 
-    assertTrue($smpl->evaluate("object.name == 'John'"));
-    assertTrue($smpl->evaluate('object.name == "John"'));
     assertEquals($smpl->evaluate('object.name'), 'John');
+    assertEquals($smpl->evaluate('object["name"]'), 'John');
+    assertEquals($smpl->evaluate("object['name']"), 'John');
+    assertEquals($smpl->evaluate('object[`name`]'), 'John');
+    assertEquals($smpl->evaluate('object[prop]'), 'John');
+    assertEquals($smpl->evaluate('object[ prop ]'), 'John');
 });
 
 test('object method', function () {
@@ -89,10 +176,45 @@ test('object method', function () {
             {
                 return $number * 100;
             }
-        }
+        },
+        'method_name' => 'method',
+        'number' => 12
     ]);
 
     assertEquals($smpl->evaluate("object.method(10)"), 1000);
+    assertEquals($smpl->evaluate("object.method( 10 )"), 1000);
+    assertEquals($smpl->evaluate("object['method']( 10 )"), 1000);
+    assertEquals($smpl->evaluate("object[method_name](10)"), 1000);
+    
+    assertEquals($smpl->evaluate("object[method_name](number)"), 1200);
+    assertEquals($smpl->evaluate("object.method_name( number )"), 1200);
+});
+
+test('ternary', function () {
+    $smpl = new SMPLang();
+
+    assertEquals($smpl->evaluate("true?'yes':'no'"), 'yes');
+    assertEquals($smpl->evaluate("true ? 'yes' : 'no'"), 'yes');
+
+    assertEquals($smpl->evaluate("false?'yes':'no'"), 'no');
+    assertEquals($smpl->evaluate("false ? 'yes' : 'no'"), 'no');
+});
+
+test('short ternary', function () {
+    $smpl = new SMPLang();
+
+    assertEquals($smpl->evaluate("true?'yes'"), 'yes');
+    assertEquals($smpl->evaluate("true ? 'yes'"), 'yes');
+
+    assertNull($smpl->evaluate("false?'yes'"));
+    assertNull($smpl->evaluate("false ? 'yes'"));
+    
+
+    assertEquals($smpl->evaluate("'yes'?:'no'"), 'yes');
+    assertEquals($smpl->evaluate("'yes' ?: 'no'"), 'yes');
+
+    assertEquals($smpl->evaluate("false?:'no'"), 'no');
+    assertEquals($smpl->evaluate("false ?: 'no'"), 'no');
 });
 
 // @todo add tests
