@@ -1,5 +1,7 @@
 # SMPLang
 
+[![run-tests](https://github.com/leongrdic/php-smplang/actions/workflows/run-tests.yml/badge.svg)](https://github.com/leongrdic/php-smplang/actions/workflows/run-tests.yml)
+
 SMPLang is a simple expression language written in PHP. It can be considered similar to PHP's native `eval()` function but SMPLang has its own syntax and the expressions are evaluated in sort-of a sandbox with access to only vars and functions/closures that you pass into it.
 
 The language is partly inspired by Symfony Expression Language but there are some major differences like array unpacking, named arguments and easier function definition, thus SMPLang may not be a replacement for some use cases.
