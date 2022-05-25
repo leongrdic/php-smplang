@@ -17,6 +17,7 @@ jobs:
       - name: Update changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
+          path-to-changelog: changelog.md
           latest-version: ${{ github.event.release.name }}
           release-notes: ${{ github.event.release.body }}
 
