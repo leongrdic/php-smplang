@@ -68,8 +68,8 @@ test('basic arithmetics', function () {
     assertEquals($smpl->evaluate('2 * 2 + 2'), 6);
     assertEquals($smpl->evaluate('2 * (2 + 2)'), 8);
 
-    assertEquals($smpl->evaluate('2 / 2 - 2'), -1);
-    assertEquals($smpl->evaluate('2 / (2 - 2)'), 2);
+    assertEquals($smpl->evaluate('4 / 2 - 1'), 1);
+    assertEquals($smpl->evaluate('4 / (2 - 1)'), 4);
     
     $smpl = new SMPLang([
         'number' => 123,
