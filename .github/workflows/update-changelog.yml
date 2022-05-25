@@ -12,17 +12,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: main
+          ref: ${{ github.event.release.target_commitish }}
 
-      - name: Update Changelog
+      - name: Update changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
           latest-version: ${{ github.event.release.name }}
           release-notes: ${{ github.event.release.body }}
 
-      - name: Commit updated CHANGELOG
+      - name: Commit updated changelog
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          branch: main
+          branch: ${{ github.event.release.target_commitish }}
           commit_message: Update changelog
           file_pattern: changelog.md
