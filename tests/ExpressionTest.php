@@ -8,7 +8,6 @@ use function PHPUnit\Framework\assertFalse;
 use function PHPUnit\Framework\assertNull;
 use function PHPUnit\Framework\assertTrue;
 
-
 test('empty expression', function () {
     $smpl = new SMPLang();
     assertNull($smpl->evaluate(''));
@@ -70,7 +69,7 @@ test('basic arithmetics', function () {
 
     assertEquals($smpl->evaluate('4 / 2 - 1'), 1);
     assertEquals($smpl->evaluate('4 / (2 - 1)'), 4);
-    
+
     $smpl = new SMPLang([
         'number' => 123,
     ]);
@@ -216,7 +215,7 @@ test('closure calls', function () {
 
 test('object property', function () {
     $smpl = new SMPLang([
-        'object' => new class {
+        'object' => new class () {
             public string $name = 'John';
         },
         'prop_name' => 'name',
@@ -232,7 +231,7 @@ test('object property', function () {
 
 test('object method', function () {
     $smpl = new SMPLang([
-        'object' => new class {
+        'object' => new class () {
             public function method(int $number): int
             {
                 return $number * 100;
@@ -246,7 +245,7 @@ test('object method', function () {
     assertEquals($smpl->evaluate("object.method( 10 )"), 1000);
     assertEquals($smpl->evaluate("object['method']( 10 )"), 1000);
     assertEquals($smpl->evaluate("object[method_name](10)"), 1000);
-    
+
     assertEquals($smpl->evaluate("object.method( number )"), 1200);
     assertEquals($smpl->evaluate("object[method_name](number)"), 1200);
 });
@@ -269,7 +268,7 @@ test('short ternary', function () {
 
     assertNull($smpl->evaluate("false?'yes'"));
     assertNull($smpl->evaluate("false ? 'yes'"));
-    
+
 
     assertEquals($smpl->evaluate("'yes'?:'no'"), 'yes');
     assertEquals($smpl->evaluate("'yes' ?: 'no'"), 'yes');
