@@ -1,14 +1,12 @@
 # SMPLang
 
-SMPLang is a simple expression language written in PHP. It can be considered similar to PHP's native `eval()` function but SMPLang has its own syntax and the expressions are evaluated in sort-of a sandbox with access to only vars and closures that you define.
+SMPLang is a simple expression language written in PHP. It can be considered similar to PHP's native `eval()` function but SMPLang has its own syntax and the expressions are evaluated in sort-of a sandbox with access to only vars and functions/closures that you pass into it.
 
-SMPLang is currently in a pre-release state - any test contributions are welcome!
-
-The language is partly inspired by Symfony Expression Language but there are some major differences. For more details and a performance benchmark, see [test.php](test.php).
+The language is partly inspired by Symfony Expression Language but there are some major differences like array unpacking, named arguments and easier function definition, thus SMPLang may not be a replacement for some use cases.
 
 Install:
 ```
-composer require leongrdic/smplang:dev-master
+composer require leongrdic/smplang
 ```
 
 To use SMPLang, create a new instance of the `Le\SMPLang\SMPLang` class and pass in an associative array of vars that you want to use in your expressions.
