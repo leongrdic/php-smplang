@@ -4,6 +4,12 @@ namespace Le\SMPLang;
 
 class SMPLang
 {
+    protected const EXTENSIONS = [
+        Extensions\VariableManager::class,
+        Extensions\ArrayManager::class,
+        Extensions\Files::class,
+    ];
+
     protected const backtickToDoubleQuotes = [
         '"' => '\\"', // escape all double quotes
         "\\`" => "[%{BACKTICK}%]", // to be unescaped
@@ -19,8 +25,12 @@ class SMPLang
     ];
 
     public function __construct(
-        protected array $vars = []
+        public array $vars = []
     ) {
+        foreach (static::EXTENSIONS as $extension) {
+            $extension = new $extension($this);
+            $this->vars = array_merge($this->vars, $extension->variables());
+        }
     }
 
     public function evaluate(string $expression, array $vars = []): mixed
