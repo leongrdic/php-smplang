@@ -23,12 +23,12 @@ test('string parsing', function () {
         $smpl->evaluate('" \' \" ` ) ( ] [ } { , "'),
         " ' \" ` ) ( ] [ } { , "
     );
-    
+
     assertEquals(
         $smpl->evaluate("' \' \" ` ) ( ] [ } { , '"),
         " ' \" ` ) ( ] [ } { , "
     );
-    
+
     assertEquals(
         $smpl->evaluate("` ' \" \` ) ( ] [ } { , `"),
         " ' \" ` ) ( ] [ } { , "
