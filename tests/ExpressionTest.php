@@ -276,5 +276,3 @@ test('short ternary', function () {
     assertEquals($smpl->evaluate("false?:'no'"), 'no');
     assertEquals($smpl->evaluate("false ?: 'no'"), 'no');
 });
-
-// @todo add tests
