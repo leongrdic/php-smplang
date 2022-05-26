@@ -19,9 +19,20 @@ test('empty expression', function () {
 test('string parsing', function () {
     $smpl = new SMPLang();
 
-    assertEquals($smpl->evaluate('" \' \" ` ) ( ] [ } { , "'), " ' \" ` ) ( ] [ } { , ");
-    assertEquals($smpl->evaluate("' \' \" ` ) ( ] [ } { , '"), " ' \" ` ) ( ] [ } { , ");
-    assertEquals($smpl->evaluate("` ' \" \` ) ( ] [ } { , `"), " ' \" ` ) ( ] [ } { , ");
+    assertEquals(
+        $smpl->evaluate('" \' \" ` ) ( ] [ } { , "'),
+        " ' \" ` ) ( ] [ } { , "
+    );
+    
+    assertEquals(
+        $smpl->evaluate("' \' \" ` ) ( ] [ } { , '"),
+        " ' \" ` ) ( ] [ } { , "
+    );
+    
+    assertEquals(
+        $smpl->evaluate("` ' \" \` ) ( ] [ } { , `"),
+        " ' \" ` ) ( ] [ } { , "
+    );
 });
 
 test('string concat', function () {
