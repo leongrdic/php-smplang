@@ -25,16 +25,58 @@ class SMPLang
 
     public function evaluate(string $expression, array $vars = []): mixed
     {
-        if (empty($vars)) {
-            return $this->eval($expression);
+        $expressions = [];
+        $currentExpression = 0;
+        $results = [];
+        $inQuotes = false;
+        $quotes = ["\"", "'", "`"];
+
+        for ($i = 0; $i < strlen($expression); $i++) {
+            $char = $expression[$i];
+
+            if (in_array($char, $quotes)) {
+                if ($inQuotes === $char) {
+                    $inQuotes = false;
+                } else {
+                    $inQuotes = $char;
+                }
+            }
+
+            if (! $inQuotes && $char == ';') {
+                $currentExpression++;
+                continue;
+            }
+
+            if (! isset($expressions[$currentExpression])) {
+                $expressions[$currentExpression] = '';
+            }
+
+            $expressions[$currentExpression] .= $char;
         }
 
-        $instance = clone $this;
-        $instance->vars = [...$instance->vars, ...$vars];
-        $result = $instance->eval($expression);
-        unset($instance);
+        $evalute = function ($expression) use ($vars) {
+            if (empty($vars)) {
+                return $this->eval($expression);
+            }
 
-        return $result;
+            $instance = clone $this;
+            $instance->vars = [...$instance->vars, ...$vars];
+            $result = $instance->eval($expression);
+            unset($instance);
+            return $result;
+        };
+
+        foreach ($expressions as $expression) {
+            $results[] = $evalute($expression);
+        }
+
+        if (count($results) < 1) {
+            return null;
+        } elseif (count($results) == 1) {
+            return $results[0];
+        }
+
+        return $results;
     }
 
     protected function eval(string $input): mixed
