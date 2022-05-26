@@ -377,7 +377,7 @@ class SMPLang
         return $this->vars[$input];
     }
 
-    protected function evaluateList(string $params, bool $evalKeys = false, bool $isObject = false): array
+    protected function evaluateList(string $params, bool $evalKeys = false, bool $isObject = false): array|object
     {
         $params = $this->parse($params, ',');
         foreach ($params as $param) {
