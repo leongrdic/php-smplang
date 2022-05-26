@@ -277,4 +277,20 @@ test('short ternary', function () {
     assertEquals($smpl->evaluate("false ?: 'no'"), 'no');
 });
 
+test('semicolons', function () {
+    $smpl = new SMPLang();
+
+    $code = '"hello world"; 1 + 5; null; [`hello`, `world`];';
+    $multiline = "\"hello world\";\r\n 1 + 5;\r\n null\r\n; [`hello`,\r\n`world`\r\n]\r\n;";
+    $result = [
+        "hello world",
+        6,
+        null,
+        ["hello", "world"],
+    ];
+
+    assertEquals($smpl->evaluate($code), $result);
+    assertEquals($smpl->evaluate($multiline), $result);
+});
+
 // @todo add tests
