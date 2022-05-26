@@ -329,7 +329,7 @@ class SMPLang
             (! str_ends_with($input, '}')) and throw new Exception("expected closing curly bracket");
             $input = substr($input, 1, -1);
 
-            return $this->evaluateList($input); // keys are not evaluated
+            return $this->evaluateList($input, isObject: true); // keys are not evaluated
         }
 
         // callable call
@@ -377,7 +377,7 @@ class SMPLang
         return $this->vars[$input];
     }
 
-    protected function evaluateList(string $params, bool $evalKeys = false): array
+    protected function evaluateList(string $params, bool $evalKeys = false, bool $isObject = false): array
     {
         $params = $this->parse($params, ',');
         foreach ($params as $param) {
@@ -408,6 +408,11 @@ class SMPLang
             foreach ($packed as $item) {
                 $output[] = $item;
             }
+        }
+
+        if ($isObject) {
+            $output = $output ?? [];
+            return (object) $output;
         }
 
         return $output ?? [];
