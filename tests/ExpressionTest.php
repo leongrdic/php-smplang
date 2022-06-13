@@ -226,8 +226,7 @@ test('closure calls', function () {
 
 test('object property', function () {
     $smpl = new SMPLang([
-        'object' => new class()
-        {
+        'object' => new class () {
             public string $name = 'John';
         },
         'prop_name' => 'name',
@@ -243,8 +242,7 @@ test('object property', function () {
 
 test('object method', function () {
     $smpl = new SMPLang([
-        'object' => new class()
-        {
+        'object' => new class () {
             public function method(int $number): int
             {
                 return $number * 100;
