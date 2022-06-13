@@ -1,5 +1,9 @@
 # SMPLang
 
+[![Latest Stable Version](http://poser.pugx.org/leongrdic/smplang/v)](https://packagist.org/packages/leongrdic/smplang)
+[![php-version](http://poser.pugx.org/leongrdic/smplang/require/php)](https://packagist.org/packages/leongrdic/smplang)
+[![License](http://poser.pugx.org/leongrdic/smplang/license)](https://packagist.org/packages/leongrdic/smplang)
+
 [![run-tests](https://github.com/leongrdic/php-smplang/actions/workflows/run-tests.yml/badge.svg)](https://github.com/leongrdic/php-smplang/actions/workflows/run-tests.yml)
 
 SMPLang is a simple expression language written in PHP. It can be considered similar to PHP's native `eval()` function but SMPLang has its own syntax and the expressions are evaluated in sort-of a sandbox with access to only vars and functions/closures that you pass into it.

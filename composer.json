@@ -5,7 +5,7 @@
     "license": "MIT",
     "homepage": "https://github.com/leongrdic/php-smplang",
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.0"
     },
     "require-dev": {
         "pestphp/pest": "^1.21",

@@ -2,6 +2,8 @@
 
 namespace Le\SMPLang;
 
+use Closure;
+
 class SMPLang
 {
     protected const backtickToDoubleQuotes = [
@@ -419,7 +421,7 @@ class SMPLang
 
         return match (true) {
             is_array($var) && array_key_exists($prop, $var) => $var[$prop],
-            is_object($var) => method_exists($var, $prop) ? $var->$prop(...) : $var->$prop,
+            is_object($var) => method_exists($var, $prop) ? Closure::fromCallable([$var, $prop]) : $var->$prop,
             default => throw new Exception("element `$prop` not found in `$expression`"),
         };
     }
