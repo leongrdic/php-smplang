@@ -40,29 +40,48 @@ Vars passed this way will override vars passed in the constructor and will only 
 
 In case of an exception, `Le\SMPLang\Exception` will be thrown with a short description of the error.
 
-## Syntax
+## Expression syntax
 
-Vars are accessed by only their name. If a var is not provided in neither constructor or `evaluate()`, an exception will be thrown.
-
-Array elements are accessed with one of the following syntaxes: `array.key.0` or `array['key'][0]` (which allows for dynamic array access).
-
-Object properties and methods are accessed with the following syntax: `object.property` or `object.method(parameters)`.
-
-Closures/functions are called with the following syntax: `closure(paramValue, ...)`. Named arguments are supported using the following syntax: `closure(param: value, ...)`.
-
-Array unpacking (`...array`) is supported both in array definitions and closure calls.
-
-Arrays can be defined using any of the following two syntaxes: `[element1, element2, ...]` or `{element1, element2, ...}`.
-
-Arrays can also serve as hashes by providing keys: `{key1: value1, key2: value2, ...}` or `["key1": value1, "key2": "value2", ...]`. The latter syntax can be used to define arrays with dynamic keys by passing vars as keys.
-
+Vars are accessed by only their name. If a var is not defined in neither constructor or `evaluate()`, an exception will be thrown.
 
 ### Supported literals
 - `null`
 - booleans (`true` and `false`)
 - strings (`"string"` or `'string'` or <code>\`string\`</code>)
 - numbers (`1`, `1.2`, `-1`, `-1.2`)
-- arrays (`[23, 'string']` or `{foo: "bar", baz: 23}`)
+- arrays (`[23, 'string']` or `["key": 23, 'key2': 'string']`)
+- objects (`{foo: "bar", baz: 23}`)
+
+
+### Arrays
+
+Array definition: `[element1, element2]`
+
+Associative array definition: `["key": element, string_variable: element2]`
+
+You can define associative arrays with dynamic keys by using string vars in place of keys.
+
+Array unpacking is supported: `[element1, ...array, ...array2]`
+
+Access array elements using either of the following syntaxes: `array.key.0` or `array['key'][0]` (which allows for dynamic array access).
+
+### Objects
+
+Object definition: `{foo: "bar", baz: 23}` (supports array unpacking)
+
+Object property access: `object.property`
+
+Object method call: `object.method(parameters)`
+
+### Function / closure call
+
+Call a function or closure var: `closure_var(param1, param2)`.
+
+Named arguments: `foo(search: value, count: 1)`.
+
+Function / closure calls support array unpacking: `bar(param1, ...array, ...array2)`
+
+
 
 ### Arithmetic operators
 - `+`: addition
