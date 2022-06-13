@@ -142,7 +142,7 @@ test('boolean expressions', function () {
     assertTrue($smpl->evaluate('!((true)&&false&&(false||true)&&true)'));
 });
 
-test('array definitions', function () {
+test('array and object definitions', function () {
     $smpl = new SMPLang([
         'key' => 'third'
     ]);
@@ -151,13 +151,13 @@ test('array definitions', function () {
     assertEquals($smpl->evaluate('[ "one", "two", 23, ]'), ["one", "two", 23]);
     assertEquals($smpl->evaluate('["first": "one", "second": "two", key: 23]'), ["first" => "one", "second" => "two", "third" => 23]);
     assertEquals($smpl->evaluate('["array": ["foo", `bar`]]'), ["array" => ["foo", "bar"]]);
-    assertEquals($smpl->evaluate('["array": {\'foo\', "bar",},]'), ["array" => ["foo", "bar"]]);
+    assertEquals($smpl->evaluate('["array": {\'foo\', "bar",},]'), ["array" => (object) ["foo", "bar"]]);
 
-    assertEquals($smpl->evaluate('{}'), []);
-    assertEquals($smpl->evaluate('{ "one", "two", 23, }'), ["one", "two", 23]);
-    assertEquals($smpl->evaluate('{first: "one", second: "two", key: 23}'), ["first" => "one", "second" => "two", "key" => 23]);
-    assertEquals($smpl->evaluate('{array: ["foo", `bar`]}'), ["array" => ["foo", "bar"]]);
-    assertEquals($smpl->evaluate('{array: {\'foo\', "bar",},}'), ["array" => ["foo", "bar"]]);
+    assertEquals($smpl->evaluate('{}'), (object) []);
+    assertEquals($smpl->evaluate('{ "one", "two", 23, }'), (object) ["one", "two", 23]);
+    assertEquals($smpl->evaluate('{first: "one", second: "two", key: 23}'), (object) ["first" => "one", "second" => "two", "key" => 23]);
+    assertEquals($smpl->evaluate('{array: ["foo", `bar`]}'), (object) ["array" => ["foo", "bar"]]);
+    assertEquals($smpl->evaluate('{array: {\'foo\', "bar",},}'), (object) ["array" => (object) ["foo", "bar"]]);
 });
 
 test('access array elements', function () {
@@ -226,7 +226,8 @@ test('closure calls', function () {
 
 test('object property', function () {
     $smpl = new SMPLang([
-        'object' => new class () {
+        'object' => new class()
+        {
             public string $name = 'John';
         },
         'prop_name' => 'name',
@@ -242,7 +243,8 @@ test('object property', function () {
 
 test('object method', function () {
     $smpl = new SMPLang([
-        'object' => new class () {
+        'object' => new class()
+        {
             public function method(int $number): int
             {
                 return $number * 100;
