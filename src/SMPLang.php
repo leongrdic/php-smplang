@@ -310,7 +310,7 @@ class SMPLang
         if (str_starts_with($input, '(')) {
             // check if the input ends with a trailing round bracket
             if (! str_ends_with($input, ')')) {
-                throw new Exception("expected closing round bracket");
+                throw new Exception("expected closing `)`");
             }
 
             return $this->eval(substr($input, 1, -1));
@@ -319,7 +319,7 @@ class SMPLang
         // array definition
         if (str_starts_with($input, '[')) {
             // check if the input ends with a trailing block bracket and get rid of both brackets
-            (! str_ends_with($input, ']')) and throw new Exception("expected closing block bracket");
+            (! str_ends_with($input, ']')) and throw new Exception("expected closing `]`");
             $input = substr($input, 1, -1);
 
             return $this->evaluateList($input, true);
@@ -328,7 +328,7 @@ class SMPLang
         // hash definition
         if (str_starts_with($input, '{')) {
             // check if the input ends with a trailing curly bracket and get rid of both brackets
-            (! str_ends_with($input, '}')) and throw new Exception("expected closing curly bracket");
+            (! str_ends_with($input, '}')) and throw new Exception("expected closing `}`");
             $input = substr($input, 1, -1);
 
             return (object) $this->evaluateList($input); // keys are not evaluated
@@ -352,7 +352,7 @@ class SMPLang
             return $callable(...$params);
         }
 
-        // nested variable [] access
+        // nested var [] access
         // if the expression ends with a block bracket (and it doesn't start with one)
         if (str_ends_with($input, ']')) {
             $parts = $this->parse($input, '[', false);
@@ -362,7 +362,7 @@ class SMPLang
             return $this->getProperty($before, $this->eval($prop));
         }
 
-        // nested variable . access
+        // nested var . access
         if (str_contains($input, '.')) {
             $parts = $this->parse($input, '.');
             $after = array_pop($parts);
@@ -371,9 +371,9 @@ class SMPLang
             return $this->getProperty($before, $after);
         }
 
-        // finally, if expression doesn't match any conditions above, assume it's a variable
+        // finally, if expression doesn't match any conditions above, assume it's a var
         if (! array_key_exists($input, $this->vars)) {
-            throw new Exception("variable `$input` not defined");
+            throw new Exception("var `$input` not defined");
         }
 
         return $this->vars[$input];
@@ -421,8 +421,9 @@ class SMPLang
 
         return match (true) {
             is_array($var) && array_key_exists($prop, $var) => $var[$prop],
-            is_object($var) => method_exists($var, $prop) ? Closure::fromCallable([$var, $prop]) : $var->$prop,
-            default => throw new Exception("element `$prop` not found in `$expression`"),
+            is_object($var) && method_exists($var, $prop) => Closure::fromCallable([$var, $prop]),
+            is_object($var) && (property_exists($var, $prop) || method_exists($var, '__get')) => $var->$prop,
+            default => throw new Exception("element `$prop` doesn't exist in `$expression`"),
         };
     }
 
@@ -504,9 +505,9 @@ class SMPLang
         }
 
         $inQuotes and throw new Exception("expected closing `$inQuotes`");
-        ($depthRound > 0) and throw new Exception("round bracket not closed");
-        ($depthBlock > 0) and throw new Exception("block bracket not closed");
-        ($depthCurly > 0) and throw new Exception("curly bracket not closed");
+        ($depthRound > 0) and throw new Exception("expected closing `)`");
+        ($depthBlock > 0) and throw new Exception("expected closing `]`");
+        ($depthCurly > 0) and throw new Exception("expected closing `}`");
 
         return $output ?? [];
     }
