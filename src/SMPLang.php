@@ -359,7 +359,7 @@ class SMPLang
             $prop = substr(array_pop($parts), 1, -1);
             $before = implode('', $parts);
 
-            return $this->getProperty($before, $this->eval($prop));
+            return $this->resolveProperty($before, $this->eval($prop));
         }
 
         // nested var . access
@@ -368,7 +368,7 @@ class SMPLang
             $after = array_pop($parts);
             $before = implode('.', $parts);
 
-            return $this->getProperty($before, $after);
+            return $this->resolveProperty($before, $after);
         }
 
         // finally, if expression doesn't match any conditions above, assume it's a var
@@ -415,14 +415,14 @@ class SMPLang
         return $output ?? [];
     }
 
-    protected function getProperty(string $expression, string $prop): mixed
+    protected function resolveProperty(string $expression, string $prop): mixed
     {
         $var = $this->eval($expression);
 
         return match (true) {
             is_array($var) && array_key_exists($prop, $var) => $var[$prop],
-            is_object($var) && method_exists($var, $prop) => Closure::fromCallable([$var, $prop]),
             is_object($var) && (property_exists($var, $prop) || method_exists($var, '__get')) => $var->$prop,
+            is_object($var) && (method_exists($var, $prop) || method_exists($var, '__call')) => Closure::fromCallable([$var, $prop]),
             default => throw new Exception("element `$prop` doesn't exist in `$expression`"),
         };
     }
