@@ -15,10 +15,10 @@ Install:
 composer require leongrdic/smplang
 ```
 
-To use SMPLang, create a new instance of the `Le\SMPLang\SMPLang` class and pass in an associative array of vars that you want to use in your expressions.
+To use SMPLang, create a new instance of the `\Le\SMPLang\SMPLang` class and pass in an associative array of vars that you want to use in your expressions.
 
 ```php
-$smpl = new Le\SMPLang\SMPLang([
+$smpl = new \Le\SMPLang\SMPLang([
     'variableName' => 'value',
 ];
 ```
@@ -38,7 +38,7 @@ $result = $smpl->evaluate($expression, [
 Vars passed this way will override vars passed in the constructor and will only be available in this specific expression, in case multiple expressions are evaluated from the same object.
 
 
-In case of an exception, `Le\SMPLang\Exception` will be thrown with a short description of the error.
+In case of an exception, `\Le\SMPLang\Exception` will be thrown with a short description of the error.
 
 ## Expression syntax
 
@@ -117,13 +117,13 @@ Function / closure calls support array unpacking: `bar(param1, ...array, ...arra
 
 ## Examples
 ```php
-$smpl = new Le\SMPLang\SMPLang();
+$smpl = new \Le\SMPLang\SMPLang();
 $result = $smpl->evaluate('(1 + 2 * 3) / 7');
 // $result will be 1
 ```
 
 ```php
-$smpl = new Le\SMPLang\SMPLang([
+$smpl = new \Le\SMPLang\SMPLang([
     'foo' => 'bar',
     'arr' => [1, 2, 3],
     'hash' => ['a' => 'b'],
@@ -134,7 +134,7 @@ $result = $smpl->evaluate('foo ~ " " ~ arr[1] ~ " " ~ hash.a');
 ```
 
 ```php
-$smpl = new Le\SMPLang\SMPLang([
+$smpl = new \Le\SMPLang\SMPLang([
     'prepend' => fn(string $a): string => "hello $a",
     'reverse' => strrev(...),
 ]);
@@ -144,7 +144,7 @@ $result = $smpl->evaluate('prepend("simple " ~ reverse("world"))');
 ```
 
 ```php
-$smpl = new Le\SMPLang\SMPLang([
+$smpl = new \Le\SMPLang\SMPLang([
     'foo' => 'bar',
 ]);
 
