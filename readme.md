@@ -20,7 +20,7 @@ To use SMPLang, create a new instance of the `\Le\SMPLang\SMPLang` class and pas
 ```php
 $smpl = new \Le\SMPLang\SMPLang([
     'variableName' => 'value',
-];
+]);
 ```
 
 You can then call the `evaluate()` method on the instance, passing in an expression string. This will return the result of the expression.
