@@ -160,3 +160,14 @@ $result = $smpl->evaluate('foo !== "bar" ? "yes" : "no"');
 // $result will be "no"
 ```
 [![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/smplang?input=%24smpl%20%3D%20new%20%5CLe%5CSMPLang%5CSMPLang%28%5B%0A%20%20%20%20%27foo%27%20%3D%3E%20%27bar%27%2C%0A%5D%29%3B%0A%0A%24result%20%3D%20%24smpl-%3Eevaluate%28%27foo%20%21%3D%3D%20%22bar%22%20%3F%20%22yes%22%20%3A%20%22no%22%27%29%3B%0Aprint_r%28%24result%29%3B)
+
+
+```php
+// SMPL can even be used as an (incredibly slow) JSON parser!
+
+$smpl = new \Le\SMPLang\SMPLang();
+$json = '{ "foo": null, "bar": 15.23, "baz": true, "arr": [5, 6], "str": "cool" }';
+$result = $smpl->evaluate($json);
+print_r($result);
+```
+[![try](https://img.shields.io/badge/Try%20it%20out-on%20PHPSandbox-%237E29CE)](https://play.phpsandbox.io/leongrdic/smplang?input=%3C%3Fphp%0A%24smpl%20%3D%20new%20%5CLe%5CSMPLang%5CSMPLang%28%29%3B%0A%24json%20%3D%20%27%7B%20%22foo%22%3A%20null%2C%20%22bar%22%3A%2015.23%2C%20%22baz%22%3A%20true%2C%20%22arr%22%3A%20%5B5%2C%206%5D%2C%20%22str%22%3A%20%22cool%22%20%7D%27%3B%0A%24result%20%3D%20%24smpl-%3Eevaluate%28%24json%29%3B%0Aprint_r%28%24result%29%3B)
